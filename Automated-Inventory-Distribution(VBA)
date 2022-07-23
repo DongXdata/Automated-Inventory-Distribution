@@ -1,0 +1,103 @@
+Sub seperateinfo()
+
+Dim sht, sht1 As Worksheet
+Dim k, i, j As Integer
+Dim irow As Long
+Dim l As Integer
+Dim d As String
+
+
+
+l = 8
+
+'Delete the unnecessary sheets
+Application.ScreenUpdating = False
+
+Application.DisplayAlerts = False
+If Sheets.Count > 1 Then
+    For Each sht1 In Sheets
+        If sht1.Name <> "raw_data" And sht1.Name <> "Overview" Then
+            sht1.Delete
+        End If
+    Next
+End If
+
+
+'Create new sheets based on the product name
+
+
+irow = Sheets("raw_data").Range("a65536").End(xlUp).Row
+
+For i = 2 To irow
+    k = 0
+    For Each sht In Sheets
+        If sht.Name = Sheets("raw_data").Cells(i, l) Then
+            k = 1
+        End If
+    Next
+    
+    
+    If k = 0 Then
+        Sheets.Add After:=Sheets(Sheets.Count)
+        Sheets(Sheets.Count).Name = Sheets("raw_data").Cells(i, l)
+    End If
+
+Next
+
+'Copy the records from the raw_data to each product sheet
+
+For j = 3 To Sheets.Count
+    Sheets("raw_data").Range("a1:h" & irow).AutoFilter field:=l, Criteria1:=Sheets(j).Name
+    Sheets("raw_data").Range("a1:h" & irow).Copy Sheets(j).Range("a1")
+Next
+
+Sheets("raw_data").Range("a1:h" & irow).AutoFilter field:=l
+
+
+'Get all the product name for the Overview sheet
+
+'Delate the old information in the Overview sheet
+
+
+
+irow = Sheets("Overview").Range("a65536").End(xlUp).Row
+
+If irow > 1 Then
+    Sheets("Overview").Range("A2:B" & irow).ClearContents
+End If
+
+
+
+'update the new product name in the Overview sheet
+
+i = 1
+For Each sht In Worksheets
+    If sht.Name <> "raw_data" And sht.Name <> "Overview" Then
+        i = i + 1
+        Sheets("Overview").Range("a" & i) = sht.Name
+    End If
+Next
+
+
+'Get the number of records for each product in the Overview sheet
+For i = 2 To irow
+    For Each sht In Worksheets
+        If Sheets("Overview").Range("a" & i) = sht.Name Then
+            Sheets("Overview").Range("b" & i) = sht.Range("a65536").End(xlUp).Row - 1
+            i = i + 1
+        End If
+    Next
+
+Next
+Application.DisplayAlerts = True
+Application.ScreenUpdating = True
+
+Sheets("raw_data").Select
+
+'Message box showing 'data updated' and the time
+
+d = now
+
+MsgBox "data updated at " & d
+
+End Sub
